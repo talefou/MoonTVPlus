@@ -628,7 +628,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                       className={`h-10 min-w-10 px-3 py-2 flex items-center justify-center text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap font-mono
                         ${isActive
                           ? 'bg-green-500 text-white shadow-lg shadow-green-500/25 dark:bg-green-600'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:scale-105 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:scale-105 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                         }`.trim()}
                     >
                       {(() => {
