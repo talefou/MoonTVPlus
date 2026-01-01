@@ -47,7 +47,8 @@ export const changelog: ChangelogEntry[] = [
 		"修复无法切换源到私人影库",
 		"修正admin权限问题",
 		"修复定时任务的openlist扫描",
-		"修复导入用户丢失问题"
+		"修复导入用户丢失问题",
+		"修复暂停保存两次播放记录"
 	]
 	},
 	{
