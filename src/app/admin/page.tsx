@@ -13372,6 +13372,7 @@ const LiveSourceConfig = ({
     useState<LiveDataSource | null>(null);
   const [orderChanged, setOrderChanged] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshIntervalHours, setRefreshIntervalHours] = useState(12);
   const [newLiveSource, setNewLiveSource] = useState<LiveDataSource>({
     name: '',
     key: '',
@@ -13401,6 +13402,7 @@ const LiveSourceConfig = ({
   useEffect(() => {
     if (config?.LiveConfig) {
       setLiveSources(config.LiveConfig);
+      setRefreshIntervalHours(config.LiveRefreshIntervalHours || 12);
       // 进入时重置 orderChanged
       setOrderChanged(false);
     }
@@ -13495,6 +13497,36 @@ const LiveSourceConfig = ({
   };
 
   // 刷新直播源
+  const handleSaveRefreshInterval = () => {
+    withLoading('saveLiveRefreshInterval', async () => {
+      if (!config) return;
+
+      const response = await fetch('/api/admin/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...config,
+          LiveRefreshIntervalHours: Math.max(1, refreshIntervalHours || 12),
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || `保存失败: ${response.status}`);
+      }
+
+      await refreshConfig();
+      showAlert({
+        type: 'success',
+        title: '保存成功',
+        message: '电视直播刷新间隔已保存',
+        timer: 2000,
+      });
+    }).catch((err) => {
+      showError(err instanceof Error ? err.message : '保存失败', showAlert);
+    });
+  };
+
   const handleRefreshLiveSources = async () => {
     if (isRefreshing) return;
 
@@ -13738,11 +13770,37 @@ const LiveSourceConfig = ({
   return (
     <div className='space-y-6'>
       {/* 添加直播源表单 */}
-      <div className='flex items-center justify-between'>
-        <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-          直播源列表
-        </h4>
-        <div className='flex items-center space-x-2'>
+      <div className='space-y-4'>
+        <div className='flex items-end justify-between gap-3'>
+          <div className='flex items-end gap-2 flex-nowrap'>
+            <div className='min-w-0'>
+              <label className='block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 whitespace-nowrap'>
+                刷新间隔（小时）
+              </label>
+              <input
+                type='number'
+                min='1'
+                value={refreshIntervalHours}
+                onChange={(e) => setRefreshIntervalHours(Math.max(1, parseInt(e.target.value) || 12))}
+                className='px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-28 sm:w-40'
+              />
+            </div>
+            <button
+              onClick={handleSaveRefreshInterval}
+              disabled={isLoading('saveLiveRefreshInterval')}
+              className={`px-3 py-1.5 text-sm whitespace-nowrap shrink-0 ${
+                isLoading('saveLiveRefreshInterval') ? buttonStyles.disabled : buttonStyles.success
+              }`}
+            >
+              {isLoading('saveLiveRefreshInterval') ? '保存中...' : '保存间隔'}
+            </button>
+          </div>
+        </div>
+        <div className='flex items-center justify-between'>
+          <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+            直播源列表
+          </h4>
+          <div className='flex items-center space-x-2'>
           <button
             onClick={handleRefreshLiveSources}
             disabled={isRefreshing || isLoading('refreshLiveSources')}
@@ -13766,6 +13824,7 @@ const LiveSourceConfig = ({
           >
             {showAddForm ? '取消' : '添加直播源'}
           </button>
+          </div>
         </div>
       </div>
 
